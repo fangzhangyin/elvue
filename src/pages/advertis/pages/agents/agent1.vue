@@ -52,7 +52,7 @@
         name: "agent1",
         data: function () {
             return {
-                advertiser_id: '',
+                advertiser_id: '1691028351713287',
                 adlist: [
                     {advertiser_id: 'fds'}
                 ],
@@ -61,8 +61,15 @@
             }
         },
         methods: {
-            searchinfo() {
-
+            async searchinfo() {
+                var s=this;
+                var res = await s.http.SyncPOST({
+                    url: 'http://localhost:8090/agent/AgentAdvertiserSelect',
+                    data: {
+                        advertiser_id:s.advertiser_id
+                    }
+                })
+                console.log(res)
             },
             handleClick(val) {
                 console.log(val)

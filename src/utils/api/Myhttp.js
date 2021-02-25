@@ -34,6 +34,9 @@ const SyncGET = function (option) {
     return new Promise((resolve, reject) => {
         axios.get(option.url, option.data)
             .then(response => {
+                if(response.data.code!=0){
+                    showtoast(response.data.message)
+                }
                 resolve(response.data);
             })
             .catch(err => {
@@ -54,6 +57,9 @@ const SyncPOST = function (option) {
     return new Promise((resolve, reject) => {
         axios.post(option.url, option.data)
             .then(response => {
+                if(response.data.code!=0){
+                    showtoast(response.data.message)
+                }
                 resolve(response.data);
             }, err => {
                 console.log(err)
@@ -119,11 +125,22 @@ const post = function (option) {
     axios.post(option.url, option.data)
         .then(response => {
             console.log(response)
+            if(response.data.code!=0){
+                showtoast(response.data.message)
+            }
             return response.data;
         }, err => {
             console.log(err)
             return null;
         })
+}
+
+function showtoast(msg){
+    Message({
+        message: msg,
+        type: 'warning',
+        center: true,
+    })
 }
 
 export default {

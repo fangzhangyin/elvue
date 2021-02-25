@@ -61,6 +61,10 @@
                                 <el-input v-model="image_id"></el-input>
                             </el-form-item>
                         </el-col>
+                        <el-col :span="24">
+                            <el-button @click="uploadhead">上传素材</el-button>
+                            <el-button>使用新头像</el-button>
+                        </el-col>
                     </el-form>
                 </el-row>
             </el-dialog>
@@ -74,9 +78,15 @@
         name: "ad2",
         data: function () {
             return {
-                advertiser_id: '',
+                advertiser_id: '1691028351301640',
                 image_id:'',
                 dialogVisible:false,
+                state:{
+                    UNSET:'未设置',
+                    IN_AUDIT:'审核中',
+                    AUDIT_REJECT:'审核被拒',
+                    AUDIT_PASS:'审核通过'
+                },
                 avatarstate:{
                     advertiser_id:'',
                     avatar_status:'',
@@ -117,13 +127,32 @@
                     }
                 })
             },
-            searchinfo(){
+            async searchinfo(){
+                var s = this;
+                if (s.advertiser_id != null && s.advertiser_id != '') {
+                    var res = await s.http.SyncPOST({
+                        url: 'http://localhost:8090/poster/AvatarGet',
+                        data: {
+                            advertiser_id: s.advertiser_id
+                        }
+                    })
+                    let headinfo=res.data;
+                    headinfo.avatar_status=s.state2info(headinfo.avatar_status)
+                    headinfo.source_status=s.state2info(headinfo.source_status)
+                    s.avatarstate=headinfo;
+                    s.avatarinfo=res.data.avatar_info;
+                }
+            },
+            state2info(state){
+                var s=this;
+                return s.state[state];
+            },
+            uploadhead(){
 
             }
         },
         mounted: function () {
-            let info = this.$route.params.info
-            console.log(info)
+
         }
     }
 </script>

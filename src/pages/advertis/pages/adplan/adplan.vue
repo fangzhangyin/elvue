@@ -35,8 +35,7 @@
                         </el-form-item>
                         <el-form-item label="添加广告计划投放状态过滤">
                             <el-select v-model="filtering.status" placeholder="计划投放状态">
-                                <el-option v-for="(value,key) in planstate" :key="key" :label="value"
-                                           :value="key"/>
+                                <el-option v-for="(value,key) in planstate" :key="key" :label="value" :value="key"/>
                             </el-select>
                         </el-form-item>
                     </div>
@@ -44,7 +43,7 @@
                         <el-button type="primary" @click="onSubmit">查询</el-button>
                     </el-form-item>
                     <el-form-item>
-                        <el-button @click="createAdplan">创建广告计划</el-button>
+                        <el-button @click="dialogVisible = true">创建广告计划</el-button>
                     </el-form-item>
                 </el-form>
             </el-col>
@@ -75,11 +74,11 @@
                     style="margin-top: 10px"
                     @size-change="handleSizeChange"
                     @current-change="handleCurrentChange"
-                    :current-page="currentPage"
+                    :current-page="page_info.page"
                     :page-sizes="[10, 20, 30, 40]"
-                    :page-size="10"
+                    :page-size="page_info.page_size"
                     layout="total, sizes, prev, pager, next, jumper"
-                    :total="total">
+                    :total="page_info.total_number">
             </el-pagination>
         </div>
         <div>
@@ -91,9 +90,15 @@
                                 <el-input v-model="createinfo.advertiser_id"/>
                             </el-form-item>
                         </el-col>
+                        <h3>基础设置</h3>
                         <el-col :span="24">
                             <el-form-item label="广告组ID">
                                 <el-input v-model="createinfo.campaign_id"/>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="24">
+                            <el-form-item label="广告计划名称">
+                                <el-input v-model="createinfo.name"/>
                             </el-form-item>
                         </el-col>
                         <el-col :span="24">
@@ -114,18 +119,88 @@
                             </el-form-item>
                         </el-col>
                         <el-col :span="24" v-if="createinfo.delivery_range==='UNION'">
-                            <el-form-item label="投放范围">
-                                <el-select v-model="createinfo.union_video_type" placeholder="投放范围">
+                            <el-form-item label="投放形式">
+                                <el-select v-model="createinfo.union_video_type" placeholder="投放形式">
                                     <el-option label="原生视频" value="ORIGINAL_VIDEO"/>
                                     <el-option label="激励视频" value="REWARDED_VIDEO"/>
                                     <el-option label="穿山甲开屏" value="SPLASH_VIDEO"/>
                                 </el-select>
                             </el-form-item>
                         </el-col>
+
+                        <h3>预算和出价</h3>
                         <el-col :span="24">
-                            <el-form-item label="投放目标">
-                                <el-select v-model="createinfo.landing_type" placeholder="投放目标">
+                            <el-form-item label="预算类型">
+                                <el-select v-model="createinfo.budget_mode" placeholder="预算类型">
+                                    <el-option label="日预算" value="BUDGET_MODE_DAY"/>
+                                    <el-option label="总预算（默认）" value="BUDGET_MODE_TOTAL"/>
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="24">
+                            <el-form-item label="预算">
+                                <el-input v-model="createinfo.budget" placeholder="预算"/>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="24">
+                            <el-form-item label="出价类型">
+                                <el-select v-model="createinfo.pricing" placeholder="出价类型">
+                                    <el-option label="CPC（点击付费），出价范围（单位元）:0.2-100" value="PRICING_CPC"/>
+                                    <el-option label="CPM（展示付费），出价范围（单位元）: 4-100" value="PRICING_CPM"/>
+                                    <el-option label="OCPC（已下线，仅投放范围为穿山甲可用）" value="PRICING_OCPC"/>
+                                    <el-option label="OCPM（转化量付费），出价范围（单位元）:0.1-10000" value="PRICING_OCPM"/>
+                                    <el-option label="CPV （出价范围（单位元）:0.07-100" value="PRICING_CPV"/>
+                                    <el-option label="CPA（已下线）" value="PRICING_CPA"/>
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="24">
+                            <el-form-item label="投放时间">
+                                <el-select v-model="createinfo.schedule_type" placeholder="投放时间">
+                                    <el-option label="一直投放" value="SCHEDULE_FROM_NOW"/>
+                                    <el-option label="选择起始时间" value="SCHEDULE_START_END"/>
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="24" v-if="createinfo.schedule_type==='SCHEDULE_START_END'">
+                            <el-form-item label="选择起止时间">
+                                <el-date-picker
+                                        v-model="Launchtime"
+                                        type="daterange"
+                                        range-separator="至"
+                                        start-placeholder="开始日期"
+                                        end-placeholder="结束日期">
+                                </el-date-picker>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="24">
+                            <el-form-item label="投放方式">
+                                <el-select v-model="createinfo.flow_control_mode" placeholder="投放方式">
+                                    <el-option label="优先跑量" value="FLOW_CONTROL_MODE_FAST"/>
+                                    <el-option label="优先低成本" value="FLOW_CONTROL_MODE_SMOOTH"/>
+                                    <el-option label="均衡投放" value="FLOW_CONTROL_MODE_BALANCE"/>
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="24">
+                            <el-form-item label="过滤已转化用户">
+                                <el-select v-model="createinfo.hide_if_converted" placeholder="用户类型">
+                                    <el-option label="不过滤" value="NO_EXCLUDE"/>
+                                    <el-option label="广告计划" value="AD"/>
+                                    <el-option label="广告组" value="CAMPAIGN"/>
+                                    <el-option label="广告账户" value="ADVERTISER"/>
+                                    <el-option label="APP" value="APP"/>
+                                    <el-option label="公司账户" value="CUSTOMER"/>
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
+                        <h3>投放目标</h3>
+                        <el-col :span="24">
+                            <el-form-item label="推广目的">
+                                <el-select v-model="createinfo.landing_type" placeholder="推广目的">
                                     <el-option label="应用推广" value="APP"/>
+                                    <el-option label="销售线索收集" value="LINK"/>
+                                    <el-option label="抖音号推广" value="AWEME"/>
                                 </el-select>
                             </el-form-item>
                         </el-col>
@@ -150,12 +225,12 @@
                                 </el-form-item>
                             </el-col>
                             <el-col :span="24" v-if="createinfo.download_type==='EXTERNAL_URL'">
-                                <el-form-item label="落地页链接" >
+                                <el-form-item label="落地页链接">
                                     <el-input v-model="createinfo.external_url" placeholder="下载方式为落地页时必填"/>
                                 </el-form-item>
                             </el-col>
                             <div v-if="createinfo.download_type==='DOWNLOAD_URL'">
-                                <el-col :span="24" >
+                                <el-col :span="24">
                                     <el-form-item label="下载的应用类型">
                                         <el-select v-model="createinfo.app_type" placeholder="应用类型">
                                             <el-option label="Android APP" value="APP_ANDROID"/>
@@ -164,11 +239,39 @@
                                     </el-form-item>
                                 </el-col>
                                 <el-col :span="24">
-                                    <el-form-item label="应用包名" >
+                                    <el-form-item label="应用包名">
                                         <el-input v-model="createinfo.package" placeholder="与应用下载链接中包名一致"/>
                                     </el-form-item>
                                 </el-col>
                             </div>
+                        </div>
+                        <div v-if="createinfo.landing_type==='LINK'">
+                            <el-col :span="24">
+                                <el-form-item label="落地页链接">
+                                    <el-input v-model="createinfo.external_url" placeholder="落地页链接"/>
+                                </el-form-item>
+                            </el-col>
+                        </div>
+                        <div v-if="createinfo.landing_type==='AWEME'">
+                            <el-col :span="24">
+                                <el-form-item label="投放内容">
+                                    <el-select v-model="createinfo.promotion_type" placeholder="投放内容">
+                                        <el-option label="直播" value="LIVE"/>
+                                        <el-option label="抖音主页（默认）" value="AWEME_HOME_PAGE"/>
+                                        <el-option label="落地页" value="LANDING_PAGE_LINK"/>
+                                    </el-select>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="24">
+                                <el-form-item label="抖音号">
+                                    <el-input v-model="createinfo.aweme_account" placeholder="抖音号"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="24" v-if="createinfo.promotion_type==='LANDING_PAGE_LINK'">
+                                <el-form-item label="落地页链接">
+                                    <el-input v-model="createinfo.external_url" placeholder="落地页链接"/>
+                                </el-form-item>
+                            </el-col>
                         </div>
 
                         <el-col :span="24">
@@ -189,12 +292,17 @@
         name: "adplan",
         data() {
             return {
+                Launchtime: [],
                 dialogVisible: false,
-                currentPage: 1,
-                total: 10,
+                page_info: {
+                    page: 1,
+                    page_size: 10,
+                    total_number: 1,
+                    total_page: 1
+                },
                 value2: true,
                 formdata: {
-                    advertiser_id: '',
+                    advertiser_id: '1691028351301640',
                 },
                 createinfo: {
                     advertiser_id: '',
@@ -202,7 +310,10 @@
                     operation: '',
                     delivery_range: '',
                     union_video_type: '',
-                    landing_type: ''
+                    landing_type: '',
+                    budget:'',
+                    feed_delivery_search: 'DISABLE',
+                    intelligent_flow_switch: 'OFF'
                 },
                 filtering: {
                     ids: '',
@@ -306,8 +417,21 @@
             }
         },
         methods: {
-            onSubmit() {
-
+            async onSubmit() {
+                var s = this;
+                var res = await s.http.SyncPOST({
+                    url: 'http://localhost:8090/adpost/Ad_Get',
+                    data: {
+                        advertiser_id: s.formdata.advertiser_id,
+                        page: s.page_info.page,
+                        page_size: s.page_info.page_size
+                    }
+                });
+                console.log(res)
+                if (res.code === 0) {
+                    s.adplanlist = res.data.list;
+                    s.page_info = res.data.page_info
+                }
             },
             handleSizeChange(val) {
                 console.log(`每页 ${val} 条`);
@@ -315,12 +439,13 @@
             handleCurrentChange(val) {
                 console.log(`当前页: ${val}`);
             },
-            createAdplan() {
-                var s = this;
-                s.dialogVisible = true;
-            },
-            createadplane() {
-
+            async createadplane() {
+                var s=this;
+                var res = await s.http.SyncPOST({
+                    url: 'http://localhost:8090/adpost/Ad_Create',
+                    data: s.createinfo
+                });
+                console.log(res);
             }
         }
     }

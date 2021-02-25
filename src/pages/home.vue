@@ -34,7 +34,7 @@
                 if(key=="#/advertise"){
                     window.location.href = "/home/advertise#/ad1"
                 }else if(key=="#/tools"){
-                    window.location.href = "/home#/tools"
+                    window.location.href = "/home/tools#/addmedia"
                 }else{
                     window.location.href = "/home" + key
                 }

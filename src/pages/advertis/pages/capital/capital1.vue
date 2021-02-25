@@ -3,12 +3,12 @@
         查询资金与流水
         <el-row type="flex" justify="center">
             <el-col :span="8">
-                <el-input v-model="advertiser_id" placeholder="请输入代理商ID"/>
+                <el-input v-model="advertiser_id" placeholder="广告主ID或代理商ID"/>
             </el-col>
         </el-row>
         <div>
             <h3>账户余额</h3>
-            <el-button>
+            <el-button @click="search">
                 点击查看
             </el-button>
             <div>
@@ -29,13 +29,13 @@
             <h3>账户流水</h3>
             <el-row type="flex" justify="center">
                 <el-col :span="8">
-                    <el-date-picker style="height: 40px;" v-model="datetime" type="datetimerange"
+                    <el-date-picker style="height: 40px;" v-model="datetime" type="daterange"
                                     range-separator="至" class="su"
                                     start-placeholder="开始时间" end-placeholder="结束时间">
                     </el-date-picker>
                 </el-col>
                 <el-col :span="8">
-                    <el-button>
+                    <el-button @click="searchDailyStat">
                         点击查看
                     </el-button>
                 </el-col>
@@ -60,7 +60,7 @@
                     @current-change="handleCurrentChange"
                     :current-page="currentPage"
                     :page-sizes="[10, 20, 30, 40]"
-                    :page-size="10"
+                    :page-size="pagesize"
                     layout="total, sizes, prev, pager, next, jumper"
                     :total="total">
             </el-pagination>
@@ -77,8 +77,10 @@
         data: function () {
             return {
                 datetime: [],
+                pagesize:10,
                 total:10,
-                advertiser_id: '',
+                currentPage:1,
+                advertiser_id: '1691028351301640',
                 balanceinfo: {
                     advertiser_id: '',
                     name: '',
@@ -124,11 +126,54 @@
             }
         },
         methods: {
+            async search(){
+                var s = this;
+                if (s.advertiser_id != null && s.advertiser_id != '') {
+                    var res = await s.http.SyncPOST({
+                        url: 'http://localhost:8090/func/FundGet',
+                        data: {
+                            advertiser_id: s.advertiser_id
+                        }
+                    })
+                    console.log(res)
+                    if(res.code!=0){
+                        this.showtoast('warning',res.message)
+                    }else{
+                        s.balanceinfo=res.data;
+                        console.log(s.balanceinfo)
+                    }
+                }
+            },
+            async searchDailyStat(){
+                var s=this;
+                var startdate=s.datetime[0];
+                var endtime=s.datetime[1];
+                startdate=startdate.getFullYear()+'-'+(startdate.getMonth()+1)+'-'+startdate.getDate();
+                endtime=endtime.getFullYear()+'-'+(endtime.getMonth()+1)+'-'+endtime.getDate();
+                console.log(startdate,endtime);
+                var res = await s.http.SyncPOST({
+                    url: 'http://localhost:8090/func/FundDailyStat',
+                    data: {
+                        advertiser_id: s.advertiser_id,
+                        start_date:startdate,
+                        end_date:endtime,
+                        page:s.currentPage,
+                        page_size:s.pagesize
+                    }
+                });
+                console.log(res);
+            },
             handleSizeChange(val) {
                 console.log(`每页 ${val} 条`);
             },
             handleCurrentChange(val) {
                 console.log(`当前页: ${val}`);
+            },
+            showtoast(type,msg){
+                this.$message({
+                    message: msg,
+                    type: type
+                });
             }
         },
         mounted: function () {

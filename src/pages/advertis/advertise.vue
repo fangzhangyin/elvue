@@ -141,7 +141,6 @@
                         </el-tab-pane>
                     </el-tabs>
                 </el-main>
-                <el-footer>底部</el-footer>
             </el-container>
         </el-container>
 

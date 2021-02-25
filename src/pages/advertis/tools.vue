@@ -3,7 +3,7 @@
         <el-container style="height: 90vh; border: 1px solid #eee">
             <el-aside width="300px">
                 <el-menu
-                        default-active="2"
+                        default-active="addmedia"
                         class="el-menu-vertical-demo"
                         background-color="#545c64"
                         text-color="#fff"
@@ -180,6 +180,21 @@
                     </el-submenu>
                 </el-menu>
             </el-aside>
+            <el-container>
+                <el-main>
+                    <el-tabs type="border-card" style="height: 100%" closable @tab-remove="removeTab"
+                             @tab-click="tabclick" v-model="editableTabsValue">
+                        <el-tab-pane
+                                v-for="(item, index) in editableTabs"
+                                :key="index"
+                                :label="item.title"
+                                :name="item.name"
+                        >
+                            <router-view></router-view>
+                        </el-tab-pane>
+                    </el-tabs>
+                </el-main>
+            </el-container>
         </el-container>
     </div>
 </template>
@@ -188,12 +203,62 @@
     export default {
         name: "tools",
         data: function () {
-            return {};
+            return {
+                editableTabsValue: 'addmedia',
+                editableTabs: [
+                    {
+                        title: 'addmedia',
+                        name: 'addmedia',
+                        content: 'addmedia'
+                    }
+                ],
+
+            };
         },
         methods: {
+            tabclick(tab, event){
+                console.log(tab, event)
+                this.handleSelect(tab.label,"");
+            },
+            addTab(targetName) {
+                var s=this;
+                var hastag=false;
+                for(var i=0;i<s.editableTabs.length;i++){
+                    if(s.editableTabs[i].name==targetName){
+                        hastag=true;
+                        break;
+                    }
+                }
+                if(!hastag){
+                    this.editableTabs.push({
+                        title: targetName,
+                        name: targetName,
+                        content: targetName
+                    });
+                }
+                this.editableTabsValue = targetName;
+            },
+            removeTab(targetName) {
+                let tabs = this.editableTabs;
+                let activeName = this.editableTabsValue;
+                if (activeName === targetName) {
+                    tabs.forEach((tab, index) => {
+                        if (tab.name === targetName) {
+                            let nextTab = tabs[index + 1] || tabs[index - 1];
+                            if (nextTab) {
+                                activeName = nextTab.name;
+                            }
+                        }
+                    });
+                }
+                this.editableTabsValue = activeName;
+                this.editableTabs = tabs.filter(tab => tab.name !== targetName);
+                window.location.href = "/home/tools#/" + activeName;
+            },
             handleSelect(key, keyPath) {
                 console.log(key, keyPath);
-                window.location.href = "/home/tools/" + key
+                this.addTab(key)
+                window.location.href = "/home/tools#/" + key
             },
         },
     }

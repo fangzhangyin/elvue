@@ -30,7 +30,7 @@
                 </el-col>
             </el-row>
         </div>
-        <el-button @click="dialogVisible=true" style="margin-top: 10px">
+        <el-button @click="openedit" style="margin-top: 10px">
             修改广告主信息
         </el-button>
         <el-button @click="qualification" style="margin-top: 10px">
@@ -78,91 +78,96 @@
         name: "ad1",
         data: function () {
             return {
-                accountname:'',
-                contacts:'',
-                phonenum:'',
-                telphonenum:'',
-                advertiser_id:'',
-                dialogVisible:false,
-                advertiserInfo:{
-                    id:'',
-                    name:'',
-                    descriptionL:'',
-                    email:'',
-                    contacter:'',
-                    phonenumber:'',
-                    role:'',
-                    status:'',
-                    telephone:'',
-                    address:'',
-                    license_url:'',
-                    license_no:'',
-                    license_province:'',
-                    license_city:'',
-                    company:'',
-                    brand:'',
-                    promotion_area:'',
-                    promotion_center_province:'',
-                    promotion_center_city:'',
-                    first_industry_name:'',
-                    second_industry_name:'',
-                    reason:'',
-                    balance:'',
-                    create_time:''
+                accountname: '',
+                contacts: '',
+                phonenum: '',
+                telphonenum: '',
+                advertiser_id: '1691028351301640',
+                dialogVisible: false,
+                advertiserInfo: {},
+                info: {
+                    id: '广告主ID',
+                    name: '账户名',
+                    descriptionL: '品牌描述,即推广内容',
+                    email: '联系邮箱',
+                    contacter: '联系人',
+                    phonenumber: '手机号码',
+                    role: '角色标识',
+                    status: '广告主状态',
+                    telephone: '固定电话',
+                    address: '地址',
+                    license_url: '执照预览地址',
+                    license_no: '执照编号',
+                    license_province: '执照省份',
+                    license_city: '执照城市',
+                    company: '公司名',
+                    brand: '经营类别',
+                    promotion_area: '运营区域',
+                    promotion_center_province: '运营省份',
+                    promotion_center_city: '运营城市',
+                    first_industry_name: '一级行业名称',
+                    second_industry_name: '二级行业名称',
+                    reason: '审核拒绝原因',
+                    balance: '账户总余额(单位元)',
+                    create_time: '创建时间'
                 },
-                info:{
-                    id:'广告主ID',
-                    name:'账户名',
-                    descriptionL:'品牌描述,即推广内容',
-                    email:'联系邮箱',
-                    contacter:'联系人',
-                    phonenumber:'手机号码',
-                    role:'角色标识',
-                    status:'广告主状态',
-                    telephone:'固定电话',
-                    address:'地址',
-                    license_url:'执照预览地址',
-                    license_no:'执照编号',
-                    license_province:'执照省份',
-                    license_city:'执照城市',
-                    company:'公司名',
-                    brand:'经营类别',
-                    promotion_area:'运营区域',
-                    promotion_center_province:'运营省份',
-                    promotion_center_city:'运营城市',
-                    first_industry_name:'一级行业名称',
-                    second_industry_name:'二级行业名称',
-                    reason:'审核拒绝原因',
-                    balance:'账户总余额(单位元)',
-                    create_time:'创建时间'
+                roletype:{
+                    ROLE_ADVERTISER:'普通广告主（直客）',
+                    ROLE_CHILD_ADVERTISER:'普通广告主（代理商子客户）',
+                    ROLE_CHILD_AGENT:'二级代理商',
+                    ROLE_AGENT:'一级代理商'
                 }
             };
         },
         methods: {
-            turnpage() {
+            openedit() {
                 var s = this;
-                s.$router.push({
-                    name: 'ad2',
-                    params: {
-                        info: '数据'
-                    }
-                })
+                s.accountname = s.advertiserInfo.name;
+                s.contacts = s.advertiserInfo.contacter;
+                s.phonenum = s.advertiserInfo.phonenumber;
+                s.telphonenum = s.advertiserInfo.telephone;
+                s.dialogVisible = true;
             },
-            searchinfo(){
-                var s=this;
-                if(s.advertiser_id!=null&&s.advertiser_id!=''){
-                    console.log('发起请求')
+            turnpage() {
+
+            },
+            async searchinfo() {
+                var s = this;
+                if (s.advertiser_id != null && s.advertiser_id != '') {
+                    var res = await s.http.SyncPOST({
+                        url: 'http://localhost:8090/poster/AdvertiserInformation',
+                        data: {
+                            advertiser_ids: [s.advertiser_id]
+                        }
+                    })
+                    console.log(res)
+                    s.advertiserInfo = res.data[0]
                 }
             },
-            editinfo(){
-
+            async editinfo() {
+                var s = this;
+                var res = await s.http.SyncPOST({
+                    url: 'http://localhost:8090/agent/AgentAdvertiserUpdate',
+                    data: {
+                        advertiser_id: s.advertiser_id,
+                        name: s.accountname,
+                        contacter: s.contacts,
+                        phonenumber: s.phonenum,
+                        telephone: s.telphonenum
+                    }
+                })
+                console.log(res);
             },
-            qualification(){
-              console.log('提交广告主资质')
+            qualification() {
+                console.log('提交广告主资质')
             }
         },
-        mounted() {
-
+        mounted: function () {
+            let info = this.$route.params.advertiser_id
+            if (info != null) {
+                this.advertiser_id = info;
+                console.log(info)
+            }
         }
     }
 

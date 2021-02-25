@@ -26,11 +26,17 @@
                 >
                 </el-table-column>
                 <el-table-column
+                        prop="advertiser_name"
+                        label="广告主名称"
+                        align="center"
+                >
+                </el-table-column>
+                <el-table-column
                         fixed="right"
                         align="center"
                         label="操作" width="200">
                     <template slot-scope="scope">
-                        <el-button @click="handleClick(scope.row)" type="primary" plain>查看、修改信息</el-button>
+                        <el-button @click="handleClick(scope.$index,scope.row)" type="primary" plain>查看、修改信息</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -52,20 +58,37 @@
         name: "steward1",
         data: function () {
             return {
-                advertiser_id: '',
+                advertiser_id: '1691028351713287',
                 adlist: [
-                    {advertiser_id: 'fds'}
+                    {
+                        advertiser_id: 'fds',
+                        advertiser_name: 'qq'
+                    }
                 ],
-                currentPage:1,
-                total:100
+                currentPage: 1,
+                total: 100
             }
         },
         methods: {
-            searchinfo() {
-
+            async searchinfo() {
+                var s = this;
+                var res = await s.http.SyncPOST({
+                    url: 'http://localhost:8090/poster/AdvertiserSelect',
+                    data: {
+                        advertiser_id: s.advertiser_id
+                    }
+                })
+                console.log(res)
+                s.adlist=res.data.list;
             },
             handleClick(val) {
-                console.log(val)
+                var s=this;
+                s.$router.push({
+                    name: 'ad1',
+                    params: {
+                        advertiser_id: val.advertiser_id
+                    }
+                })
             },
             handleSizeChange(val) {
                 console.log(`每页 ${val} 条`);

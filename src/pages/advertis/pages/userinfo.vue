@@ -22,16 +22,24 @@
         name: "userinfo",
         data: function () {
             return {
-                userinfo:{},
-                user:{
-                    id:'用户id',
-                    email:'邮箱（已经脱敏处理）',
-                    display_name:'用户名'
+                userinfo: {},
+                user: {
+                    id: '用户id',
+                    email: '邮箱（已经脱敏处理）',
+                    display_name: '用户名'
                 }
             }
         },
-        methods: {
-
+        methods: {},
+        async created() {
+            var s = this;
+            var res = await s.http.SyncPOST({
+                url: 'http://localhost:8090/user/UserInfo',
+                data: {
+                }
+            });
+            console.log(res)
+            s.userinfo=res.data
         }
     }
 </script>

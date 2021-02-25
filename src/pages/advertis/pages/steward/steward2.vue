@@ -35,7 +35,7 @@
         name: "steward2",
         data: function () {
             return {
-                advertiser_id: '',
+                advertiser_id: '1691028351713287',
                 agent:{
                     agent_id:'',
                     agent_name:'',
@@ -59,7 +59,17 @@
             }
         },
         methods: {
-            searchinfo(){
+            async searchinfo(){
+                var s=this;
+                if(s.advertiser_id!=null&&s.advertiser_id!=''){
+                    var res=await s.http.SyncPOST({
+                        url: 'http://localhost:8090/agent/AgentInfo',
+                        data: {
+                            advertiser_ids: [s.advertiser_id]
+                        }
+                    })
+                    console.log(res)
+                }
 
             }
         }
